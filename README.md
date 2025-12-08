@@ -44,15 +44,24 @@ Clean, publication-ready graphics showing how SPY reacts across CPI releases.
 ---
 
 ## 🧱 Project Architecture
-src/
-│
-├── config.py              # YAML loader for runtime settings
-├── macro_events.py        # CPI ingestion & parsing
-├── market_data.py         # Market data puller (yfinance)
-├── event_window.py        # Event window computation logic
-├── cpi_reactions.py       # Full CPI reaction table builder
-├── visualize.py           # Plots CPI surprise vs. market reaction
-└── main.py                # One-command analysis pipeline
+macro-event-tracker/
+├── config.yml  
+├── data/  
+│   ├── raw/  
+│   │   └── us_cpi_events.csv  
+│   └── processed/  
+│       ├── cpi_reactions_spy.csv  
+│       └── cpi_surprise_vs_return_spy.png  
+├── src/  
+│   ├── config.py  
+│   ├── macro_events.py  
+│   ├── market_data.py  
+│   ├── event_window.py  
+│   ├── cpi_reactions.py  
+│   ├── visualize.py  
+│   └── main.py  
+├── requirements.txt  
+└── README.md
 
 ---
 
