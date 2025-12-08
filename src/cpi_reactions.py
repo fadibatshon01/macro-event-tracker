@@ -1,3 +1,4 @@
+from pathlib import Path
 import pandas as pd
 
 from .macro_events import load_cpi_events
@@ -56,13 +57,39 @@ def build_cpi_reaction_table(
     return pd.DataFrame(rows)
 
 
+def save_cpi_reaction_table(
+    symbol: str = "SPY",
+    days_before: int = 5,
+    days_after: int = 5,
+    output_path: Path | None = None,
+) -> Path:
+    """
+    Build the CPI reaction table and save it to CSV.
+    Returns the path to the saved file.
+    """
+    table = build_cpi_reaction_table(symbol, days_before, days_after)
+
+    if output_path is None:
+        root = Path(__file__).resolve().parents[1]
+        output_dir = root / "data" / "processed"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_path = output_dir / f"cpi_reactions_{symbol.lower()}.csv"
+
+    table.to_csv(output_path, index=False)
+    print(f"Saved CPI reaction table to: {output_path}")
+    return output_path
+
+
 if __name__ == "__main__":
+    # Build and display table
     table = build_cpi_reaction_table(symbol="SPY", days_before=5, days_after=5)
 
-    # Pretty formatting
     pd.set_option("display.max_columns", None)
     pd.set_option("display.width", 120)
     pd.set_option("display.float_format", lambda x: f"{x:6.2f}")
 
     print("\n=== CPI Reaction Summary (SPY) ===")
     print(table)
+
+    # Save to CSV in data/processed
+    save_cpi_reaction_table(symbol="SPY", days_before=5, days_after=5)
