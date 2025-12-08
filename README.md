@@ -1,64 +1,106 @@
 # Macro Event Impact Tracker
-A Python pipeline that tracks how US macroeconomic releases (starting with CPI) move the equity market. It pulls historical CPI events, downloads price data for a chosen symbol (e.g. SPY), and computes before/after returns around each release, including surprise vs. market reaction. Results are saved as a clean CSV and a chart for quick analysis or reporting.
 
-## Features
-- Loads CPI YoY releases from data/raw/us_cpi_events.csv and parses timestamps, actual values, and consensus forecasts.
-- Downloads daily price history via yfinance and cleans close prices (handles multi-index formats).
-- Builds event windows around CPI releases (±5 days) and computes before/after returns.
-- Computes CPI “surprise” = actual − consensus and relates it to market reaction.
-- Saves a full CPI reaction table to data/processed/cpi_reactions_spy.csv.
-- Produces PNG charts showing after-event returns vs CPI surprise at data/processed/cpi_surprise_vs_return_spy.png.
-- Includes a one-command pipeline using: python -m src.main.
+A fully automated Python analytics engine that measures how financial markets react to major macroeconomic releases. This project ingests economic event data (starting with CPI), aligns it with historical market prices, and quantifies how equity indices respond before and after each announcement. The pipeline computes reaction metrics, generates structured datasets, and produces visual insights used for macro-driven trading research.
 
-## Project Structure
-macro-event-tracker/
-├── config.yml  
-├── data/  
-│   ├── raw/  
-│   │   └── us_cpi_events.csv  
-│   └── processed/  
-│       ├── cpi_reactions_spy.csv  
-│       └── cpi_surprise_vs_return_spy.png  
-├── src/  
-│   ├── config.py  
-│   ├── macro_events.py  
-│   ├── market_data.py  
-│   ├── event_window.py  
-│   ├── cpi_reactions.py  
-│   ├── visualize.py  
-│   └── main.py  
-├── requirements.txt  
-└── README.md
+This repository showcases:
+- event-level financial analysis  
+- clean data engineering architecture  
+- statistical return computations  
+- a modular and reproducible research pipeline  
+- polished outputs ready for dashboards, slides, or quant reports  
 
-## Setup
-git clone https://github.com/fadibatshon01/macro-event-tracker.git  
-cd macro-event-tracker  
-python -m venv .venv  
-source .venv/bin/activate  
-pip install -r requirements.txt  
+---
 
-Example config.yml:
-data:
-  cpi_events_path: "data/raw/us_cpi_events.csv"
-market:
-  symbols:
-    - "SPY"
-window:
-  days_before: 5
-  days_after: 5
+## 🚀 What This System Does
 
-## Usage
-Run the entire pipeline:
-python -m src.main
+### **1. Loads macroeconomic releases**
+The pipeline reads a curated dataset of CPI releases including:
+- event timestamp  
+- actual inflation print  
+- consensus forecast  
+- computed inflation surprise (`actual − consensus`)
 
-This generates:
-- data/processed/cpi_reactions_spy.csv
-- data/processed/cpi_surprise_vs_return_spy.png
+### **2. Pulls historical market prices**
+Using `yfinance`, the engine automatically fetches SPY (or any ticker) market data. It handles:
+- multi-index OHLCV structures  
+- date alignment around intraday events  
+- missing data during market holidays  
 
-Or run components individually:
-python -m src.cpi_reactions  
-python -m src.visualize  
-python -m src.event_window  
+### **3. Builds event windows**
+For each CPI announcement, the system constructs a ±5-day window of price data and computes:
+- **before-event return**  
+- **after-event return**  
 
-## Tech Stack
-Python, pandas, yfinance, matplotlib, PyYAML, GitHub.
+### **4. Creates a full CPI reaction dataset**
+A research-ready table combining:
+- event timestamp  
+- actual vs. consensus CPI  
+- inflation surprise  
+- before/after SPY returns  
+
+### **5. Generates visual analytics**
+Clean, publication-ready graphics showing how SPY reacts across CPI releases.
+
+---
+
+## 🧱 Project Architecture
+src/
+│
+├── config.py              # YAML loader for runtime settings
+├── macro_events.py        # CPI ingestion & parsing
+├── market_data.py         # Market data puller (yfinance)
+├── event_window.py        # Event window computation logic
+├── cpi_reactions.py       # Full CPI reaction table builder
+├── visualize.py           # Plots CPI surprise vs. market reaction
+└── main.py                # One-command analysis pipeline
+
+---
+
+## 🔄 Inputs → Processing → Outputs  
+A fully automated end-to-end pipeline.
+
+**Inputs**  
+- CPI dataset (timestamps, actual, consensus)  
+- Market data (SPY or any ticker via yfinance)  
+
+**Processing**  
+- event alignment  
+- window construction  
+- return computation  
+- surprise calculation  
+
+**Outputs**  
+- structured CPI reaction dataset  
+- visual analytics for interpretation  
+
+---
+
+## 🛠️ Tech Stack
+
+- Python  
+- pandas  
+- yfinance  
+- matplotlib  
+- PyYAML  
+- Git & GitHub  
+
+---
+
+## 📈 Example Use Cases
+
+This engine enables you to:
+
+- quantify how markets price inflation surprises  
+- measure volatility around macro announcements  
+- develop macro-sensitive trading strategies  
+- build macro dashboards for PMs and investors  
+- extend to new datasets (FOMC, NFP, PCE, GDP, rate decisions)  
+
+This system forms the backbone of a scalable macro analytics suite.
+
+---
+
+## 👤 Author
+
+Built by **Fadi Batshon** — combining data engineering, financial modeling, and market microstructure insights to create automated tools for real-world macro research.
+
