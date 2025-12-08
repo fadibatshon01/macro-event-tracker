@@ -83,7 +83,6 @@ def save_cpi_reaction_table(
 if __name__ == "__main__":
     # Build and display table
     table = build_cpi_reaction_table(symbol="SPY", days_before=5, days_after=5)
-
     pd.set_option("display.max_columns", None)
     pd.set_option("display.width", 120)
     pd.set_option("display.float_format", lambda x: f"{x:6.2f}")
@@ -93,3 +92,4 @@ if __name__ == "__main__":
 
     # Save to CSV in data/processed
     save_cpi_reaction_table(symbol="SPY", days_before=5, days_after=5)
+

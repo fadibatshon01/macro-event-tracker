@@ -45,22 +45,22 @@ Clean, publication-ready graphics showing how SPY reacts across CPI releases.
 
 ## 🧱 Project Architecture
 macro-event-tracker/
-├── config.yml  
-├── data/  
-│   ├── raw/  
-│   │   └── us_cpi_events.csv  
-│   └── processed/  
-│       ├── cpi_reactions_spy.csv  
-│       └── cpi_surprise_vs_return_spy.png  
-├── src/  
-│   ├── config.py  
-│   ├── macro_events.py  
-│   ├── market_data.py  
-│   ├── event_window.py  
-│   ├── cpi_reactions.py  
-│   ├── visualize.py  
-│   └── main.py  
-├── requirements.txt  
+├── config.yml
+├── data/
+│ ├── raw/
+│ │ └── us_cpi_events.csv
+│ └── processed/
+│ ├── cpi_reactions_spy.csv
+│ └── cpi_surprise_vs_return_spy.png
+├── src/
+│ ├── config.py
+│ ├── macro_events.py
+│ ├── market_data.py
+│ ├── event_window.py
+│ ├── cpi_reactions.py
+│ ├── visualize.py
+│ └── main.py
+├── requirements.txt
 └── README.md
 
 ---
