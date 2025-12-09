@@ -1,8 +1,23 @@
+from __future__ import annotations
+
 from pathlib import Path
 import pandas as pd
 
+from .config import load_config
 from .macro_events import load_cpi_events
 from .event_window import get_event_window_prices, compute_before_after_returns
+
+
+def _project_root() -> Path:
+    """Return the project root directory (one level above src)."""
+    return Path(__file__).resolve().parents[1]
+
+
+def _get_processed_path(symbol: str) -> Path:
+    """Return the path where the CPI reaction table CSV will be saved."""
+    cfg = load_config()
+    processed_dir = cfg["paths"]["processed_dir"]
+    return _project_root() / processed_dir / f"cpi_reactions_{symbol.lower()}.csv"
 
 
 def build_cpi_reaction_table(
@@ -11,85 +26,95 @@ def build_cpi_reaction_table(
     days_after: int = 5,
 ) -> pd.DataFrame:
     """
-    Loop over all CPI events and compute before/after returns for each.
-    Returns a DataFrame summary.
+    For each CPI event in the local CSV, build an event-study table with:
+      - event timestamp
+      - actual / consensus CPI
+      - surprise (actual - consensus)
+      - before-event return (%)
+      - after-event return (%)
     """
     events = load_cpi_events()
 
-    rows = []
+    rows: list[dict] = []
 
     for _, row in events.iterrows():
-        event_time = row["timestamp"]
+        try:
+            event_time = row["event_timestamp"]
+        except KeyError:
+            # Fallback if someone accidentally named the column differently
+            for cand in ["timestamp", "date", "event_time"]:
+                if cand in row.index:
+                    event_time = row[cand]
+                    break
+            else:
+                print("Skipping row with no recognizable timestamp column.")
+                continue
 
         try:
-            # Get price window around this event
-            prices = get_event_window_prices(symbol, event_time, days_before, days_after)
+            actual = float(row["actual"])
+            consensus = float(row["consensus"])
+        except Exception:
+            # Skip rows with bad numeric values
+            print(f"Skipping event at {event_time} due to invalid actual/consensus.")
+            continue
 
-            # Compute before/after reactions
+        surprise = actual - consensus
+
+        try:
+            prices = get_event_window_prices(
+                symbol=symbol,
+                event_time=event_time,
+                days_before=days_before,
+                days_after=days_after,
+            )
             stats = compute_before_after_returns(prices, event_time)
         except Exception as e:
             print(f"Skipping event at {event_time} due to error: {e}")
             continue
 
-        # Compute macro surprise (actual - consensus), if available
-        surprise = None
-        try:
-            actual = float(row["actual"])
-            consensus = float(row["consensus"])
-            surprise = actual - consensus
-        except Exception:
-            actual = row.get("actual", None)
-            consensus = row.get("consensus", None)
-
         rows.append(
             {
                 "symbol": symbol,
-                "event": row["event"],
+                "event": row.get("event", "CPI_YoY"),
                 "event_timestamp": event_time,
                 "actual": actual,
                 "consensus": consensus,
                 "surprise": surprise,
-                "before_return_pct": stats["before_return"] * 100,
-                "after_return_pct": stats["after_return"] * 100,
+                "before_return_pct": stats["before_return"] * 100.0,
+                "after_return_pct": stats["after_return"] * 100.0,
             }
         )
 
-    return pd.DataFrame(rows)
+    table = pd.DataFrame(rows)
+    table = table.sort_values("event_timestamp").reset_index(drop=True)
+    return table
 
 
 def save_cpi_reaction_table(
     symbol: str = "SPY",
     days_before: int = 5,
     days_after: int = 5,
-    output_path: Path | None = None,
 ) -> Path:
     """
-    Build the CPI reaction table and save it to CSV.
-    Returns the path to the saved file.
+    Build the CPI reaction table and save it to data/processed/cpi_reactions_<symbol>.csv.
+    Returns the path to the saved CSV.
     """
-    table = build_cpi_reaction_table(symbol, days_before, days_after)
+    table = build_cpi_reaction_table(
+        symbol=symbol,
+        days_before=days_before,
+        days_after=days_after,
+    )
 
-    if output_path is None:
-        root = Path(__file__).resolve().parents[1]
-        output_dir = root / "data" / "processed"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        output_path = output_dir / f"cpi_reactions_{symbol.lower()}.csv"
+    out_path = _get_processed_path(symbol)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    table.to_csv(out_path, index=False)
 
-    table.to_csv(output_path, index=False)
-    print(f"Saved CPI reaction table to: {output_path}")
-    return output_path
+    print(f"Saved CPI reaction table to: {out_path}")
+    return out_path
 
 
 if __name__ == "__main__":
-    # Build and display table
-    table = build_cpi_reaction_table(symbol="SPY", days_before=5, days_after=5)
-    pd.set_option("display.max_columns", None)
-    pd.set_option("display.width", 120)
-    pd.set_option("display.float_format", lambda x: f"{x:6.2f}")
-
-    print("\n=== CPI Reaction Summary (SPY) ===")
-    print(table)
-
-    # Save to CSV in data/processed
-    save_cpi_reaction_table(symbol="SPY", days_before=5, days_after=5)
-
+    # Quick manual test
+    df = build_cpi_reaction_table(symbol="SPY", days_before=5, days_after=5)
+    print(df.tail())
+    print(f"\nBuilt CPI reaction table with {len(df)} rows.")

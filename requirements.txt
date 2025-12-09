@@ -1,6 +1,6 @@
 pandas
-numpy
-requests
-matplotlib
 yfinance
-pyyaml
+matplotlib
+PyYAML
+requests
+python-dotenv

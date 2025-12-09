@@ -1,21 +1,7 @@
-assets:
-  - symbol: SPY
-    name: S&P 500 ETF
-  - symbol: QQQ
-    name: Nasdaq 100 ETF
-  - symbol: TLT
-    name: 20Y Treasury ETF
-  - symbol: GLD
-    name: Gold ETF
-  - symbol: DXY
-    name: US Dollar Index
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
 
-events:
-  - code: CPI
-    name: US CPI
-
-event_window:
-  minutes_before: 60
-  minutes_after: 180
-  days_after: 1
-
+market:
+  default_symbol: SPY
+  event_window_days: 5

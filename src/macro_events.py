@@ -1,29 +1,43 @@
 from pathlib import Path
 import pandas as pd
 
-
-# Path to the raw data folder
-DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "raw"
+from .config import load_config
 
 
-def load_cpi_events(csv_name: str = "us_cpi_events.csv") -> pd.DataFrame:
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def _get_raw_path() -> Path:
+    cfg = load_config()
+    raw_dir = cfg["paths"]["raw_dir"]
+    return _project_root() / raw_dir / "us_cpi_events.csv"
+
+
+def load_cpi_events() -> pd.DataFrame:
     """
-    Load US CPI event data from a CSV file.
-
-    Returns a DataFrame with a combined 'timestamp' column.
+    Load CPI event data from the local CSV file in data/raw.
+    Expected columns:
+    - event
+    - event_timestamp
+    - actual
+    - consensus
     """
-    csv_path = DATA_DIR / csv_name
-    df = pd.read_csv(csv_path)
+    csv_path = _get_raw_path()
 
-    # Combine date + time into a single datetime column
-    df["timestamp"] = pd.to_datetime(df["date"] + " " + df["time"], format="%Y-%m-%d %H:%M")
+    if not csv_path.exists():
+        raise FileNotFoundError(
+            f"Expected CPI CSV not found at: {csv_path}\n"
+            "Make sure us_cpi_events.csv exists in data/raw/"
+        )
 
-    # Sort by time just to be safe
-    df = df.sort_values("timestamp").reset_index(drop=True)
+    df = pd.read_csv(csv_path, parse_dates=["event_timestamp"])
+    df = df.sort_values("event_timestamp").reset_index(drop=True)
+
     return df
 
 
 if __name__ == "__main__":
     events = load_cpi_events()
-    print(events.head())
-    print("\nColumns:", events.columns.tolist())
+    print(events)
+    print(f"\nLoaded {len(events)} CPI events from local CSV.")
